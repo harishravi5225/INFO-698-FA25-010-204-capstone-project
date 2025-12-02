@@ -1,0 +1,21 @@
+{
+  "gini": 0.5355796418473138,
+  "center_vs_periphery": {
+    "center_avg": 32.75,
+    "periphery_avg": 134.25,
+    "center_count": 16,
+    "periph_count": 4
+  },
+  "feeding_by_distance": {
+    "dist_0_0.20_0.32": 18.0,
+    "dist_1_0.32_0.44": 32.0,
+    "dist_2_0.44_0.56": 43.2,
+    "dist_3_0.56_0.67": 35.0,
+    "dist_4_0.67_0.79": 51.333333333333336
+  },
+  "total_feeds": 1061,
+  "avg_feeds_per_larva": 53.05,
+  "hungry_ignored_count": 0,
+  "redundant_feed_count": 0,
+  "total_bouts_completed": 39
+}

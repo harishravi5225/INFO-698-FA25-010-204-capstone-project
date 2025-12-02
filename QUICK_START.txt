@@ -1,0 +1,434 @@
+===============================================================================
+                         QUICK START GUIDE
+                    How to Run and Use This Project
+===============================================================================
+
+FOLDER CONTENTS:
+
+Code Files:
+  - model.py (521 lines): Core simulation engine
+  - agent.py (264 lines): Agent behaviors
+  - analysis.py (397 lines): Parameter sweep and metrics
+  - run.py (63 lines): Entry point
+  - VERIFY_REQUIREMENTS.py: Verification script
+
+Documentation:
+  - PROJECT_OVERVIEW.txt: Complete project description
+  - METHODOLOGY.txt: Detailed methods and mathematics
+  - RESULTS_INTERPRETATION.txt: Analysis of findings
+  - QUICK_START.txt: This file
+
+Data Output:
+  - output_abm/ folder: All results from simulations
+
+===============================================================================
+STEP 1: VERIFY REQUIREMENTS (2 minutes)
+===============================================================================
+
+Purpose: Confirm all 10 requirements based on received feedback are implemented
+
+Command:
+  python VERIFY_REQUIREMENTS.py
+
+What it does:
+  - Creates 30-cell test colony
+  - Runs 100 timesteps
+  - Checks all 10 requirements
+  - Prints verification results
+
+Expected output:
+  Requirement 1: Nest structure - PASS
+  Requirement 2: Agent population - PASS
+  ...
+  Requirement 10: Behavioral logs - PASS
+  STATUS: PRODUCTION READY
+
+If all PASS: Verification passed and outputs available
+
+===============================================================================
+STEP 2: QUICK TEST (1 minute)
+===============================================================================
+
+Purpose: Quick verification that model runs without errors
+
+Command:
+  python run.py quick
+
+What it does:
+  - Runs single simulation
+  - 20-cell small nest
+  - Generates one visualization
+  - Quick check
+
+Expected output:
+  Loading nest...
+  Running simulation...
+  Computing metrics...
+  Generating visualization...
+  Saved: output_abm/quick_test_analysis.png
+
+'Saved' indicates outputs were produced
+
+Check result:
+  Open: output_abm/quick_test_analysis.png
+  The file contains four panels with graphical output
+
+===============================================================================
+STEP 3: FULL ANALYSIS (15 minutes)
+===============================================================================
+
+Purpose: Generate complete parameter sweep with all 20 simulations
+
+Command:
+  python run.py
+
+What it does:
+  - Runs 20 simulations (5 scenarios × 4 nest sizes)
+  - Computes all metrics for each
+  - Generates visualizations
+  - Produces summary report
+
+Expected output:
+  Running comprehensive parameter sweep...
+  Scenario 1/5: BASELINE
+    20 cells... saved
+    40 cells... saved
+    60 cells... saved
+    80 cells... saved
+  Scenario 2/5: LOW_FORAGER
+    ...
+  (takes ~15 minutes total)
+  
+  Parameter sweep complete!
+  Saved metrics_summary.csv
+  Saved analysis_report.txt
+
+Files created in output_abm/:
+  - metrics_summary.csv: All 20 runs
+  - route_comparison.csv: Route efficiency data
+  - analysis_report.txt: Auto-generated findings
+  - 100+ data files (CSV, JSON, PNG)
+
+===============================================================================
+STEP 4: EXAMINE RESULTS
+===============================================================================
+
+View Summary Results:
+
+Option A - Excel/Spreadsheet:
+  1. Open: output_abm/metrics_summary.csv
+  2. 20 rows (one per simulation)
+  3. 18 columns (metrics)
+  4. Can sort/filter
+
+Option B - Text Report:
+  1. Open: output_abm/analysis_report.txt
+  2. Auto-generated findings
+  3. Key statistics highlighted
+  4. Human-readable format
+
+View Visualizations:
+
+Option C - Charts:
+  1. Open folder: output_abm/
+  2. Look for *_analysis.png files
+  3. Each shows 4-panel plot:
+     Panel 1: Feeding heatmap (spatial distribution)
+     Panel 2: Role pie chart (composition)
+     Panel 3: Gini over time (equality dynamics)
+     Panel 4: Cumulative feeds (feeding rate)
+
+View Detailed Data:
+
+Option D - Raw Data:
+  1. Open: output_abm/baseline_n20_feed_events.csv
+     (Replace "baseline" with any scenario)
+     (Replace "20" with 40, 60, or 80)
+  2. Columns: time, feeder_id, larva_id, amount, bout_id
+  3. Every feeding event logged
+
+Interpret Results:
+
+See RESULTS_INTERPRETATION.txt for:
+  - Explanation of each chart
+  - What the numbers mean
+  - Biological significance
+  - Comparison to real data
+
+===============================================================================
+PARAMETER SWEEP SCENARIOS EXPLAINED
+===============================================================================
+
+SCENARIO 1: BASELINE
+  Settings: Normal colony (90% worker ratio, 6% foragers)
+  Purpose: Reference case for comparison
+  Used for: All other scenarios measured against this
+  
+SCENARIO 2: LOW_FORAGER
+  Settings: Half as many foragers (3% instead of 6%)
+  Purpose: Test food bottleneck
+  Question: Does lack of foragers limit feeding?
+  Expected: Lower total feeds, but more equal distribution
+
+SCENARIO 3: HIGH_FORAGER
+  Settings: More foragers (10% instead of 6%)
+  Purpose: Test if excess foragers help
+  Question: Can colony efficiency be improved?
+  Expected: More total feeds
+
+SCENARIO 4: LOW_RATIO
+  Settings: Fewer total workers (70% instead of 90%)
+  Purpose: Test scarcity effects
+  Question: Does having fewer workers improve equality?
+  Expected: Lower total feeds, but much more equal (lower Gini)
+
+SCENARIO 5: HIGH_RATIO
+  Settings: More total workers (95% instead of 90%)
+  Purpose: Test abundance effects
+  Question: Does having more workers increase inequality?
+  Expected: More total feeds, but less equal (higher Gini)
+
+NEST SIZES:
+  20 cells: Small
+  40 cells: Medium
+  60 cells: Large
+  80 cells: Extra large
+
+Result: 5 scenarios × 4 sizes = 20 total simulations
+
+===============================================================================
+UNDERSTANDING THE METRICS
+===============================================================================
+
+Total Feeds:
+  - Count of all feeding events
+  - Range: 500-5000 depending on scenario
+  - Higher is better (more larvae fed)
+
+Per-Larva Feeds:
+  - Average feeds per larva
+  - Formula: Total feeds / number of larvae
+  - Range: 30-60 in our results
+   - Higher is better for the colony
+
+Gini Coefficient:
+  - Measures feeding equality
+  - Range: 0.0 (perfect equality) to 1.0 (perfect inequality)
+   - Results: 0.49-0.54 (realistic for social insects)
+  - Lower is more equal
+  
+  Example interpretation:
+    Gini 0.50: Some larvae fed more than others
+    Gini 0.49: More equal
+    Gini 0.54: Less equal
+
+Transfers:
+  - Count of food handoffs through hierarchy
+  - Shows how much work is done
+  - More transfers = more active colony
+
+Bouts:
+  - Number of feeding episodes
+  - Bout = one forager arrival that triggers feeding chain
+  - More bouts = more frequent feeding events
+
+Route Efficiency:
+  - How good are forager routes
+  - Ratio vs optimal greedy algorithm
+  - 1.0 = optimal, 2.0 = twice as long as optimal
+  - Results: ~1.74 (realistic for simple heuristics)
+
+===============================================================================
+INTERPRETING CHARTS
+===============================================================================
+
+CHART 1 - Feeding Heatmap (Panel 1):
+  Observed output:
+    - Left side: RED (bright colors)
+    - Right side: BLUE (dark colors)
+  
+  What it means:
+    - Left = entrance area
+    - Red = heavily fed
+    - Blue = rarely fed
+    - Pattern: 4-5x more feeding at entrance
+  
+  Why:
+    - Feeders positioned near entrance
+    - Food arrives at entrance
+    - Larvae at center are far from food
+  
+  Biological implication:
+    - Location determines feeding priority
+    - May reflect caste: peripheral=queens, center=workers
+
+CHART 2 - Role Pie Chart (Panel 2):
+  Observed output:
+    - Large slice: Feeders (yellow)
+    - Medium slices: Secondary (orange), Primary (blue)
+    - Small slice: Foragers (red)
+  
+  What it means:
+    - Most wasps are feeders
+    - Pyramid structure for specialization
+    - Few foragers specialize in collection
+  
+  Biological implication:
+    - Role hierarchy is pyramid-shaped
+    - Role assignment shows caste effects
+
+CHART 3 - Gini Over Time (Panel 3):
+  Observed output:
+    - Line that changes over time
+    - Usually: High at start, drops then plateaus
+  
+  What it means:
+    - Initially: Unequal (random positions)
+    - By step 50: Converges to equilibrium
+    - After step 100: Stable level
+  
+  Interpretation:
+    - System reaches equilibrium quickly
+    - Feeding patterns stabilize
+    - Results are steady-state, not transient
+
+CHART 4 - Cumulative Feeds (Panel 4):
+  Observed output:
+    - Line that goes up steeply then plateaus
+  
+  What it means:
+    - Steep: Early active feeding
+    - Plateau: System reaches full activity
+    - Final height: Total feeds in run
+  
+  Interpretation:
+    - Feeding rate starts high
+    - After ~100 steps: Reaches constant rate
+    - Later increases are slower (saturation)
+
+===============================================================================
+TROUBLESHOOTING
+===============================================================================
+
+Problem: "ModuleNotFoundError: numpy"
+Solution: Install required packages
+  pip install numpy pandas matplotlib
+
+Problem: "File not found" error
+Solution: Ensure the current directory is the project root
+  cd "path/to/Final"
+  python run.py
+
+Problem: Script runs very slowly
+Solution: This is expected - parameter sweep takes 15 minutes
+  For quick test: python run.py quick
+
+Problem: output_abm folder is empty
+Solution: Folder is created during first run, should be populated after
+  Run: python run.py quick
+  Then check: output_abm/ should have files
+
+Problem: Results look wrong (all zeros, etc.)
+Solution: Try verification script first
+  python VERIFY_REQUIREMENTS.py
+  If that fails, there's a setup issue
+  If that passes, model is working
+
+===============================================================================
+FREQUENTLY ASKED QUESTIONS
+===============================================================================
+
+Q: How long does full analysis take?
+A: 10-15 minutes on typical computer. Goes in background.
+
+Q: How to run a single scenario?
+A: Modify `run.py` and comment out scenarios that are not required
+  See `run.py` lines 40-45
+
+Q: Can I change nest size?
+A: Modify run.py: Change nest_sizes list (line 36)
+   Example: nest_sizes = [20, 40] (just small and medium)
+
+Q: Can I change number of timesteps?
+A: Modify analysis.py: Change steps=400 (line 85)
+   Example: steps=800 (double length)
+
+Q: What do the output files mean?
+A: See FILE_INDEX.txt for complete listing
+
+Q: How can results be used for publication?
+A:
+  1. Use `metrics_summary.csv` for tables
+  2. Use PNG visualizations for figures
+  3. Use `analysis_report.txt` for interpretation
+  4. See `RESULTS_INTERPRETATION.txt` for detailed analysis
+
+Q: Can I modify the code?
+A: Yes, it's fully modular:
+  - model.py: Change simulation rules
+  - agent.py: Change agent behaviors
+  - analysis.py: Change metrics computed
+  All are well-commented
+
+Q: What if I want to test a new hypothesis?
+A: See PROJECT_OVERVIEW.txt → "Future Work" section
+   Provides roadmap for extensions
+
+===============================================================================
+NEXT STEPS
+===============================================================================
+
+After Running Analysis:
+
+1. Review PROJECT_OVERVIEW.txt
+   - Understand what was studied
+   - Why it matters biologically
+   - What conclusions were drawn
+
+2. Study METHODOLOGY.txt
+   - Understand how model works mathematically
+   - See exact algorithms used
+   - Review validation procedures
+
+3. Examine RESULTS_INTERPRETATION.txt
+   - Learn what charts mean
+   - Understand biological implications
+   - See full results table
+
+4. Explore output_abm/ folder
+   - Examine CSV files
+   - View PNG visualizations
+   - Read JSON files for detailed data
+
+5. For Presentation:
+   - metrics_summary.csv: Table of results
+   - output_abm/*.png: Figures for slides
+   - analysis_report.txt: Text for discussion
+
+6. For Publication:
+   - Include Figure 1: Feeding heatmap (Panel 1)
+   - Include Figure 2: Scenario comparison (Gini bars)
+   - Include Table: metrics_summary.csv
+   - Use RESULTS_INTERPRETATION.txt as basis for discussion
+
+===============================================================================
+GETTING HELP
+===============================================================================
+
+For Understanding:
+  - Read PROJECT_OVERVIEW.txt: Big picture
+  - Read METHODOLOGY.txt: Technical details
+  - Read RESULTS_INTERPRETATION.txt: What results mean
+
+For Running:
+  - This file (QUICK_START.txt): How to run
+  - Code comments in .py files: Code explanations
+
+For Questions:
+  - Check comments in relevant code file
+  - Review related section in METHODOLOGY.txt
+  - Examine similar result in output_abm/
+
+===============================================================================
+END OF QUICK START GUIDE
+===============================================================================

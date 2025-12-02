@@ -1,147 +1,67 @@
 # run.py
-# run.py
 """
-Run the full agent-based model:
-- Baseline simulation
-- Parameter sweep
-- Route analysis
-Outputs saved into ./output_abm/
+Comprehensive ABM runner with required metrics.
+Runs parameter sweeps and generates detailed analysis.
+
+Key features:
+- Multiple nest sizes (20, 30, 50, 80)
+- Multiple scenarios (forager ratios, wasp-to-cell ratios)
+- Route efficiency comparisons (observed vs greedy vs random vs biased vs TSP)
+- Feeding outcome metrics (unfed, multi-fed, center vs periphery)
+- Error tracking (hungry-ignored, redundant feeds)
+- Full behavioral audit logs
 """
 
 import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from model import WaspModel, distance
+import sys
 
-OUTDIR = "output_abm"
-os.makedirs(OUTDIR, exist_ok=True)
+# Quick option: run single test or full analysis
+# Usage: python run.py [quick|full]
 
-# ---------------- Baseline run ---------------- #
-print("Running baseline...")
-
-model = WaspModel(
-    layout_csv="ED_FL_3nests1noC2.csv",
-    n_wasps=25,
-    n_foragers=3,
-    n_unloaders=6,
-    perception_radius=1.2,
-    forward_bias=0.7
-)
-
-model.run(steps=800)
-
-# Feed events
-feed_rows = []
-for c in model.larvae:
-    for (t, w) in c.feed_history:
-        feed_rows.append({"time": t, "wasp_id": w, "cell_id": c.cell_id})
-feed_df = pd.DataFrame(feed_rows)
-feed_df.to_csv(os.path.join(OUTDIR, "baseline_feed_events.csv"), index=False)
-
-# Larval counts
-larval_df = pd.DataFrame([
-    {"cell_id": c.cell_id, "x": c.pos[0], "y": c.pos[1], "feeds": c.feed_count}
-    for c in model.larvae
-])
-larval_df.to_csv(os.path.join(OUTDIR, "baseline_larval_counts.csv"), index=False)
-
-# Heatmap
-plt.scatter(larval_df["x"], larval_df["y"], c=larval_df["feeds"], cmap="magma", s=60)
-plt.colorbar(label="Feed count")
-plt.title("Baseline Feeding Heatmap")
-plt.savefig(os.path.join(OUTDIR, "baseline_heatmap.png"))
-plt.close()
-
-print("Baseline complete. Files saved.")
-
-# ---------------- Parameter Sweep ---------------- #
-print("Running parameter sweep...")
-
-results = []
-
-for foragers in [1,2,3,4]:
-    for pr in [0.8, 1.2, 2.0]:
-        for fb in [0.3, 0.7, 0.95]:
-            for r in range(4):
-                m = WaspModel(
-                    layout_csv="ED_FL_3nests1noC2.csv",
-                    n_wasps=25,
-                    n_foragers=foragers,
-                    n_unloaders=6,
-                    perception_radius=pr,
-                    forward_bias=fb
-                )
-                m.run(steps=500)
-
-                counts = np.array([c.feed_count for c in m.larvae])
-                if counts.sum() == 0:
-                    gini = 0
-                else:
-                    s = np.sort(counts)
-                    n = len(s)
-                    idx = np.arange(1, n+1)
-                    gini = (2*np.sum(idx*s)/(n*s.sum())) - (n+1)/n
-
-                results.append({
-                    "foragers": foragers,
-                    "perception": pr,
-                    "forward_bias": fb,
-                    "gini": gini
-                })
-
-df = pd.DataFrame(results)
-df.to_csv(os.path.join(OUTDIR, "param_sweep_results.csv"), index=False)
-
-print("Parameter sweep done.")
-
-# ---------------- Route analysis ---------------- #
-print("Running route analysis...")
-
-feed_df = feed_df.sort_values("time")
-seq = feed_df["cell_id"].astype(str).unique().tolist()
-
-id2pos = {c.cell_id: c.pos for c in model.larvae}
-
-def path_length(order):
-    if len(order) < 2:
-        return 0
-    L = 0
-    for i in range(len(order)-1):
-        L += distance(id2pos[order[i]], id2pos[order[i+1]])
-    return L
-
-obs = path_length(seq)
-
-# NN heuristic
-nn_seq = [seq[0]]
-remaining = set(seq[1:])
-cur = nn_seq[0]
-
-while remaining:
-    nxt = min(remaining, key=lambda c: distance(id2pos[cur], id2pos[c]))
-    nn_seq.append(nxt)
-    remaining.remove(nxt)
-    cur = nxt
-
-nn_len = path_length(nn_seq)
-
-# Random permutations
-perms = []
-import random
-for i in range(200):
-    tmp = seq[:]
-    random.shuffle(tmp)
-    perms.append(path_length(tmp))
-
-summary = pd.DataFrame([{
-    "observed": obs,
-    "nn": nn_len,
-    "random_mean": np.mean(perms)
-}])
-
-summary.to_csv(os.path.join(OUTDIR, "route_comparison.csv"), index=False)
-
-print("Route analysis complete.")
-print("All outputs saved in:", OUTDIR)
-
+if len(sys.argv) > 1 and sys.argv[1] == "quick":
+    print("Running quick test (1 nest size, baseline scenario)...")
+    from model import WaspModel
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import json
+    
+    OUT = "output_abm"
+    os.makedirs(OUT, exist_ok=True)
+    
+    m = WaspModel(nest_size=20, model_seed=42)
+    print(f"Model created: {len(m.agents)} agents, {len(m.larvae)} larvae")
+    m.run(steps=400)
+    
+    print(f"\nResults:")
+    print(f"  Total feeds: {sum(c.feed_count for c in m.larvae)}")
+    print(f"  Gini: {m.compute_gini():.4f}")
+    print(f"  Unfed larvae: {sum(1 for c in m.larvae if c.feed_count == 0)}")
+    print(f"  Center avg feeds: {m.compute_center_vs_periphery_feeding()['center_avg']:.2f}")
+    print(f"  Periphery avg feeds: {m.compute_center_vs_periphery_feeding()['periphery_avg']:.2f}")
+    print(f"  Bouts completed: {len(m.bouts_log)}")
+    
+    # Quick save
+    df_cells = pd.DataFrame([
+        {
+            "cell_id": c.cell_id, "x": c.pos[0], "y": c.pos[1],
+            "feeds": c.feed_count, "distance_from_center": c.distance_from_center
+        }
+        for c in m.larvae
+    ])
+    df_cells.to_csv(f"{OUT}/quick_test_larval_counts.csv", index=False)
+    
+    plt.figure(figsize=(8, 6))
+    plt.scatter(df_cells.x, df_cells.y, c=df_cells.feeds, cmap="magma", s=100, edgecolor="black")
+    plt.colorbar(label="Feeding count")
+    plt.title("Quick Test: Feeding Heatmap (nest=20)")
+    plt.savefig(f"{OUT}/quick_test_heatmap.png", dpi=150)
+    plt.close()
+    
+    print(f"\nQuick test outputs saved to {OUT}/")
+else:
+    print("Running comprehensive parameter sweep analysis...")
+    print("This will test multiple nest sizes and scenarios.\n")
+    from analysis import parameter_sweep_analysis, create_summary_report
+    
+    all_metrics, all_routes = parameter_sweep_analysis()
+    create_summary_report(all_metrics, all_routes)
