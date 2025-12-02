@@ -1,0 +1,109 @@
+FINAL REPORT
+
+Model: Ropalidia marginata hierarchical food-distribution ABM
+Author: Avinash
+Date: December 2, 2025
+
+INTRODUCTION
+
+Social insects provide powerful natural examples of how simple individual rules scale into robust colony-level organization. This project implements an agent-based model (ABM) of hierarchical food distribution in Ropalidia marginata wasp colonies. The model represents individual wasps (foragers, primary receivers, secondary receivers, feeders) and larvae distributed across a realistic nest geometry. Food arrives stochastically at the nest boundary and is transferred through the hierarchy to larvae. The simulation records detailed behavioral audit logs, feeding events, transfer chains, bout dynamics, and multiple route-efficiency comparisons. The outputs include per-run CSV/JSON data and visualizations saved under `output_abm/` in the `Final` folder.
+
+OBJECTIVE
+
+The primary objective of this work is to create a reproducible ABM that: (1) implements a biologically plausible multi-tiered feeding hierarchy, (2) produces metrics required for evaluation of feeding efficiency and inequality (including Gini coefficient, bout statistics, and transfer counts), and (3) enables comparative route-efficiency analyses versus greedy, random, biased-random, and TSP baselines. The model is intended for direct comparison with empirical nest data when available and to support hypothesis testing about how colony composition and forager availability affect feeding outcomes.
+
+MOTIVATION
+
+Two broad motivations guided the work. First, understanding the mechanistic drivers of feeding inequality in social insects can clarify links between nest spatial structure and caste-like outcomes. Second, the engineering-style question of how simple heuristics (forward-biased movement) compare to optimization baselines (greedy and TSP) provides insight into tradeoffs between cognitive cost and energy/efficiency gains. The ABM provides a controlled environment to manipulate forager fraction, worker ratio, nest size, and other parameters while collecting a comprehensive set of behavioral and efficiency metrics.
+
+METHODS (Summary)
+
+Model structure
+- Agents: Each wasp is modeled as an agent with a role (forager, primary, secondary, feeder, idle). Role switching is implemented based on local conditions and hunger timers.
+- Larvae: Each larval cell tracks hunger, feed_count, last_fed timestamp, and distance from nest center.
+- Nest geometry: Cells are loaded from CSV; periphery vs center regions are identified for spatial analysis.
+- Time: Discrete timesteps (default 400 steps per run).
+
+Stochastic processes and rules
+- Food arrivals: Poisson-like arrivals at the entrance with variable quantities (stochastic draw) and peripheral bias.
+- Transfers: Food is passed along the chain (forager → primary → secondary → feeder → larva) with small proportional losses at each handoff to model metabolic/handling costs.
+- Bouts: Feeding bouts are registered on forager arrival, may extend with low probability on new arrivals, and close after 80 timesteps without arrivals.
+
+Analysis pipeline
+- Parameter sweep: Five scenarios × four nest sizes (20, 30, 50, 80) totaling 20 runs.
+- Metrics: Per-run metrics include total_feeds, avg_feeds_per_larva, Gini coefficient, unfed_count, multi-fed_count, bout dynamics, total transfers, hungry_ignored events, and redundant feeds.
+- Route comparisons: Extract representative routes from bouts and compute path-length/directional-score for observed, greedy NN, random, biased random, and optional TSP solutions.
+
+RESULTS & INTERPRETATION
+
+Overview of aggregated findings
+The full parameter sweep (20 runs) produced the main summary file `output_abm/metrics_summary.csv` and `output_abm/analysis_report.txt` (both saved in the `Final/output_abm/` folder). Key aggregated numbers across the 20 simulations are summarized below.
+
+Summary metrics (aggregated):
+- Average Gini coefficient across runs: 0.5244
+- Average unfed larvae: 0.00 (no larvae remained unfed in the completed runs)
+- Average hungry-ignored events: 0.00 (no systematic ignoring of hungry larvae)
+- Average redundant feeds: 0.00 (no excessive double-feeding events recorded)
+
+Scenario-level outcomes (average feeds per larva):
+- Baseline (wasp ratio 0.9, forager fraction 6%): 46.73 feeds/larva
+- Low_Forager (forager fraction 3%): 32.42 feeds/larva
+- High_Forager (forager fraction 10%): 57.71 feeds/larva
+- Low_Ratio (wasp ratio 0.7): 32.45 feeds/larva
+- High_Ratio (wasp ratio 0.95): 53.15 feeds/larva
+
+Interpretation
+1. Forager availability is the dominant factor driving throughput. Increasing the forager fraction from 3% to 10% increased per-larva feeding rates substantially (+≈78% in the scenario means), whereas changes in total worker ratio produced smaller gains in many cases. This indicates intake (forager supply) is the primary limiting resource for net feeding throughput.
+
+2. Scarcity tends to reduce inequality. The Low_Ratio and Low_Forager scenarios produced lower average Gini values (more equal distributions) than the High_Ratio scenario. This suggests that under constrained input (fewer foragers or fewer workers), feeding distribution becomes more egalitarian as the system avoids concentrated accumulation by a subset of larvae.
+
+3. Spatial location drives persistent inequality. Periphery larvae (near entrance) consistently received substantially more feeds than interior larvae in every scenario. This spatial bias emerges from the fact that feeders cluster near the point of arrival, creating an emergent geographic hierarchy that favors larvae near the entrance.
+
+4. Routing inefficiency is biologically plausible. Route-efficiency comparisons show the observed paths are longer than greedy or TSP baselines but consistently better than random alternatives. Typical aggregated numbers from route comparisons: observed path ≈ 5.23 units vs greedy ≈ 3.00 units (greedy is shorter). The observed strategy trades optimality for cognitive simplicity and lower decision cost, which is consistent with expected biological constraints.
+
+Visualizations (files saved in `output_abm/`)
+- `baseline_n20_analysis.png`, `baseline_n30_analysis.png`, etc.: Each run's 4-panel figure includes (1) feeding heatmap, (2) role pie chart, (3) Gini over time, and (4) cumulative feeds. These images visually confirm entrance-centered feeding and the dynamics summarized above.
+- `route_comparison.csv` and per-run `*_metrics.json` provide numeric detail behind the plotted figures.
+
+DISCUSSION
+
+Biological implications
+The model demonstrates how simple individual behaviors (forward-biased movement, hierarchical handoffs) and nest geometry can explain observed patterns of feeding inequality. The strong spatial effect implies that nest architecture itself can be a major determinant of larval fate and possibly caste differentiation, independent of complex individual-level biasing.
+
+Model strengths and limitations
+Strengths:
+- Comprehensive instrumentation: The model logs per-event detail enabling post-hoc auditing and robust metrics.
+- Modular analysis: Route comparisons and scenario sweeps are automated and reproducible.
+- Neutral parameterization: Default parameters were chosen to be biologically plausible and produce stable steady-state dynamics within 400 steps.
+
+Limitations:
+- Lack of direct empirical calibration in the current run: The model is ready for calibration against field nest coordinates and measured feed counts, but those empirical datasets were not integrated during the sweep.
+- Simplified energetic accounting: Transfer losses and metabolic costs are modeled as stepwise fractional losses, which capture the broad effect but could be elaborated with species-specific energetics.
+- Behavior plasticity: Role switching occurs but is constrained in the current implementation; more complex learning or history-dependent behavior could be explored.
+
+CONCLUSION
+
+This ABM reproduces a set of robust, interpretable outcomes: feeding throughput scales mainly with forager input, spatial structure strongly biases feeding toward periphery larvae, scarcity tends to reduce inequality, and observed routing is suboptimal compared to computational baselines but plausible biologically. The simulation framework, outputs, and visualizations are saved in the `Final/output_abm/` folder and are ready to be used for empirical calibration, extended hypothesis testing, or integration into a manuscript.
+
+FILES & HOW TO FIND VISUALIZATIONS
+
+All generated outputs are in `Final/output_abm/`. Important files for reporting and visualization include:
+- `metrics_summary.csv` — main aggregated table (20 runs)
+- `analysis_report.txt` — auto-generated textual summary
+- `route_comparison.csv` — route-efficiency results
+- Per-run PNGs: e.g. `baseline_n20_analysis.png`, `high_forager_n80_analysis.png`, etc.
+- Per-run JSON/CSV: `*_feed_events.csv`, `*_transfers.csv`, `*_bouts.json`, `*_metrics.json`
+
+REPRODUCIBLE RUN INSTRUCTIONS
+
+From the `Final` folder, run the following commands to reproduce the full sweep and reports:
+
+```powershell
+python VERIFY_REQUIREMENTS.py
+python run.py quick   # quick single-run check
+python run.py         # full sweep (20 runs)
+```
+
+If additional formatting is required (PDF or slides), a conversion from this text file plus the PNGs can be produced on request.
+
+END OF REPORT

@@ -1,0 +1,50 @@
+================================================================================
+COMPREHENSIVE ABM ANALYSIS REPORT
+================================================================================
+
+KEY FINDINGS - METRICS SUMMARY
+--------------------------------------------------------------------------------
+Total simulations: 20
+Average Gini coefficient: 0.5244
+Average unfed larvae: 0.00
+Average hungry-ignored events: 0.00
+Average redundant feeds: 0.00
+
+Results by Scenario:
+
+  BASELINE:
+    Nest sizes: [np.int64(20), np.int64(30), np.int64(50), np.int64(80)]
+    Avg feeds/larva: 46.73
+    Avg Gini: 0.5365
+
+  LOW_FORAGER:
+    Nest sizes: [np.int64(20), np.int64(30), np.int64(50), np.int64(80)]
+    Avg feeds/larva: 32.42
+    Avg Gini: 0.5141
+
+  HIGH_FORAGER:
+    Nest sizes: [np.int64(20), np.int64(30), np.int64(50), np.int64(80)]
+    Avg feeds/larva: 57.71
+    Avg Gini: 0.5319
+
+  LOW_RATIO:
+    Nest sizes: [np.int64(20), np.int64(30), np.int64(50), np.int64(80)]
+    Avg feeds/larva: 32.45
+    Avg Gini: 0.4976
+
+  HIGH_RATIO:
+    Nest sizes: [np.int64(20), np.int64(30), np.int64(50), np.int64(80)]
+    Avg feeds/larva: 53.15
+    Avg Gini: 0.5418
+
+================================================================================
+ROUTE EFFICIENCY COMPARISON
+--------------------------------------------------------------------------------
+Observed vs Greedy efficiency:
+  Avg observed path: 5.23
+  Avg greedy path: 3.00
+  Avg random path: 4.82
+  Avg biased path: 3.92
+  Avg TSP optimal: 3.83
+
+================================================================================
